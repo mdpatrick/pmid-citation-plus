@@ -8,7 +8,7 @@ Description: This plugin makes citing scientific studies in an aesthetically ple
 */
 
 
-< // Add script necessary to have abstract in tooltip.
+ // Add script necessary to have abstract in tooltip.
 function enqueue_pmid_scripts() {
     wp_register_script( 'jquery-tooltip', plugins_url('/js/jquery-tooltip/jquery.tooltip.js', __FILE__));
     wp_enqueue_script( 'jquery-tooltip' );
@@ -69,7 +69,7 @@ function build_references_html($processedarray) {
 	<ul>
 	<?php
 	foreach($processedarray as $singlecitation) {
-		echo "<li>";
+		echo "<li id=\"cit".$singlecitation['pmid']."\">";
 		echo "{$singlecitation['authors']} {$singlecitation['title']} {$singlecitation['journal']} {$singlecitation['issue']} ".'PMID: '.'<a href="'.$singlecitation['url'].'">'.$singlecitation['pmid'].'</a>.';
 		if (strlen($singlecitation['abstract']) > 0) {
 		echo '

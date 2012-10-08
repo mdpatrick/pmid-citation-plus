@@ -13,6 +13,7 @@ This plugin allows you to simply enter in PubMed IDs (PMIDs) and have a referenc
 **[For $30 I will add your feature and provide support.](http://www.mdpatrick.com/donate/)**
 
 .. or ..
+
 **[You can make your own feature and create a pull request on GitHub. This plug is open source.](https://github.com/mdpatrick/PMID-Citation-Plus)**
 
 This plugin makes citing scientific studies in an *aesthetically pleasing manner* much more easy. 
