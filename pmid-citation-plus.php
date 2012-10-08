@@ -2,16 +2,27 @@
 /*
 Plugin Name: PMID Citation Plus
 Plugin URI: http://www.mdpatrick.com/pmidcitationplus/
-Version: 1.0.1
+Version: 1.0.3
 Author: Dan Patrick
 Description: This plugin makes citing scientific studies in an aesthetically pleasing manner much more easy. It allows you to simply enter in Pubmed IDs and have a references list automatically built for you. At the moment it only supports PMIDs, but in the future will also support citation via DOI.
 */
+
+
+< // Add script necessary to have abstract in tooltip.
+function enqueue_pmid_scripts() {
+    wp_register_script( 'jquery-tooltip', plugins_url('/js/jquery-tooltip/jquery.tooltip.js', __FILE__));
+    wp_enqueue_script( 'jquery-tooltip' );
+    wp_register_style( 'jquery-tooltip', plugins_url('/js/jquery-tooltip/jquery.tooltip.css', __FILE__) );
+    wp_enqueue_style( 'jquery-tooltip' );
+}    
+ 
+add_action('wp_enqueue_scripts', 'enqueue_pmid_scripts');
 
 // Grabs pubmed page from URL, pulls into string, parses out an array with: title, journal, issue, authors, institution.
 
 function scrape_pmid_abstract($pubmedid) {
 	$pubmedpage = file_get_contents('http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid);
-	preg_match('/<div class="cit">(?P<journal>.*?)<\/a>(?P<issue>.*?\.).*?<\/div><h1>(?P<title>.+)<\/h1><div class="auths">(?P<authors>.+)<\/div><div class="aff"><h3.*Source<\/h3><p>(?P<institution>.*?)<\/p>/', $pubmedpage, $matches);
+ 	preg_match('/<div class="cit">(?P<journal>.*?)<\/a>(?P<issue>.*?\.).*?<\/div><h1>(?P<title>.+)<\/h1><div class="auths">(?P<authors>.+)<\/div><div class="aff"><h3.*Source<\/h3><p>(?P<institution>.*?)<\/p>.*?<div class="abstr">(\s|\n)*(?P<abstract>.*?)(<p>\s*(©|Copyright|\s|\n|&#169;|&copy;).*?<\/p>)*<\/div>/', $pubmedpage, $matches);
 	$abstract = array(
 			'authors' => strip_tags($matches['authors']), 
 			'title' => $matches['title'], 
@@ -19,10 +30,12 @@ function scrape_pmid_abstract($pubmedid) {
 			'journal' => strip_tags($matches['journal']), 
 			'issue' => trim($matches['issue']), 
 			'pmid' => $pubmedid, 
-			'url' => 'http://www.ncbi.nlm.nih.gov/pubmed/'.$pubmedid
+			'url' => 'http://www.ncbi.nlm.nih.gov/pubmed/'.$pubmedid,
+			'abstract' => $matches['abstract']
 			);
 	return $abstract;
 }
+// var_dump(print_r(scrape_pmid_abstract(23036621))); die();
 
 // Takes a comma separated list, like the one constructed from build_simple_pmid_string, and creates a multi-dimensional array of all of the information produced by the scrape_pmid_abstract.
 function process_pmid_input($fieldinput) {
@@ -58,6 +71,22 @@ function build_references_html($processedarray) {
 	foreach($processedarray as $singlecitation) {
 		echo "<li>";
 		echo "{$singlecitation['authors']} {$singlecitation['title']} {$singlecitation['journal']} {$singlecitation['issue']} ".'PMID: '.'<a href="'.$singlecitation['url'].'">'.$singlecitation['pmid'].'</a>.';
+		if (strlen($singlecitation['abstract']) > 0) {
+		echo '
+<span style="display:none;" class="abstr">
+'.trim($singlecitation['abstract']).'
+</span>
+<script type="text/javascript">
+jQuery(document).ready(function() {
+jQuery("#cit'.$singlecitation['pmid'].'").tooltip({ 
+    bodyHandler: function() { 
+        return jQuery("#cit'.$singlecitation['pmid'].' .abstr").html(); 
+    }, 
+    showURL: false 
+});
+});
+</script>';
+		}
 		echo "</li>";
 	}
 	?></ul></div>
