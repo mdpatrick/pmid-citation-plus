@@ -82,7 +82,7 @@ function build_references_html($processedarray)
             if (strlen($singlecitation['abstract']) > 0) {
                 echo '
 <span style="display:none;" class="abstr">
-' . trim($singlecitation['abstract']) . '
+' . substr(trim($singlecitation['abstract']), 0, 445) . ' [...]
 </span>
 <script type="text/javascript">
 jQuery(document).ready(function() {
