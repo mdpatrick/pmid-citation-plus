@@ -28,22 +28,25 @@ function enqueue_pmid_scripts()
 // Grabs pubmed page from URL, pulls into string, parses out an array with: title, journal, issue, authors, institution.
 function scrape_pmid_abstract($pubmedid)
 {
+    $ret_array = array();
     try {
         $request = wp_remote_get('http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid);
         $pubmedpage = $request['body'];
         //TODO replace try/catch with is_wp_error()
-        preg_match('/<div class="cit">(?P<journal>.*?)<\/a>(?P<issue>.*?\.).*?<\/div><h1>(?P<title>.+)<\/h1><div class="auths">(?P<authors>.+)<\/div><div class="aff"><h3.*Source<\/h3><p>(?P<institution>.*?)<\/p>.*?<div class="abstr">.*?\<p\>(?P<abstract>.*?)\<\/p\>(<p>\s*(©|Copyright|\s|\n|&#169;|&copy;).*?<\/p>)*<\/div>/', $pubmedpage, $matches);
-        $abstract = array(
-            'authors' => strip_tags($matches['authors']),
-            'title' => $matches['title'],
-            'institution' => $matches['institution'],
-            'journal' => strip_tags($matches['journal']),
-            'issue' => trim($matches['issue']),
-            'pmid' => $pubmedid,
-            'url' => 'http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid,
-            'abstract' => strip_tags($matches['abstract'])
-        );
-        return $abstract;
+        $ret_array['url'] = 'http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid;
+        preg_match('/<div class="cit">(?P<journal>.*?)<\/a>(?P<issue>.*?\.).*?<\/div>/', $pubmedpage, $matches);
+        $ret_array['journal'] = strip_tags($matches['journal']);
+        $ret_array['issue'] = trim($matches['issue']);
+        $ret_array['pmid'] = $pubmedid;
+        preg_match('/<h1>(?P<title>.+)<\/h1><div class="auths">(?P<authors>.*?)<\/div>/', $pubmedpage, $matches);
+        $ret_array['title'] = $matches['title'];
+        $ret_array['authors'] = strip_tags($matches['authors']);
+        preg_match('/<div class="aff"><h3.*Source<\/h3><p>(?P<institution>.*?)<\/p>/', $pubmedpage, $matches);
+        $ret_array['institution'] = $matches['institution'];
+        preg_match('/<div class="abstr">.*?\<p\>(?P<abstract>.*?)\<\/p>/', $pubmedpage, $matches);
+        $ret_array['abstract'] = strip_tags($matches['abstract']);
+
+        return $ret_array;
     } catch (Exception $e) {
         return false;
     }
