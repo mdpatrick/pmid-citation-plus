@@ -29,7 +29,7 @@ function enqueue_pmid_scripts()
 function scrape_pmid_abstract($pubmedid)
 {
     $pubmedpage = file_get_contents('http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid);
-    preg_match('/<div class="cit">(?P<journal>.*?)<\/a>(?P<issue>.*?\.).*?<\/div><h1>(?P<title>.+)<\/h1><div class="auths">(?P<authors>.+)<\/div><div class="aff"><h3.*Source<\/h3><p>(?P<institution>.*?)<\/p>.*?<div class="abstr">(\s|\n)*(?P<abstract>.*?)(<p>\s*(©|Copyright|\s|\n|&#169;|&copy;).*?<\/p>)*<\/div>/', $pubmedpage, $matches);
+    preg_match('/<div class="cit">(?P<journal>.*?)<\/a>(?P<issue>.*?\.).*?<\/div><h1>(?P<title>.+)<\/h1><div class="auths">(?P<authors>.+)<\/div><div class="aff"><h3.*Source<\/h3><p>(?P<institution>.*?)<\/p>.*?<div class="abstr">.*?\<p\>(?P<abstract>.*?)\<\/p\>(<p>\s*(©|Copyright|\s|\n|&#169;|&copy;).*?<\/p>)*<\/div>/', $pubmedpage, $matches);
     $abstract = array(
         'authors' => strip_tags($matches['authors']),
         'title' => $matches['title'],
@@ -38,7 +38,7 @@ function scrape_pmid_abstract($pubmedid)
         'issue' => trim($matches['issue']),
         'pmid' => $pubmedid,
         'url' => 'http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid,
-        'abstract' => $matches['abstract']
+        'abstract' => strip_tags($matches['abstract'])
     );
     return $abstract;
 }
@@ -88,7 +88,7 @@ function build_references_html($processedarray)
 jQuery(document).ready(function() {
 jQuery("#cit' . $singlecitation['pmid'] . '").tooltip({
     bodyHandler: function() { 
-        return jQuery("#cit' . $singlecitation['pmid'] . ' .abstr").html();
+        return jQuery("#cit' . $singlecitation['pmid'] . ' .abstr").text();
     }, 
     showURL: false 
 });
