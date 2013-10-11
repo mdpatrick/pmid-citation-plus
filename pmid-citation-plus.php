@@ -4,7 +4,7 @@ Plugin Name: PMID Citation Plus
 Plugin URI: http://www.mdpatrick.com/pmidcitationplus/
 Version: 1.0.4
 Author: Dan Patrick
-Description: This plugin makes citing scientific studies in an aesthetically pleasing manner much more easy. It allows you to simply enter in Pubmed IDs and have a references list automatically built for you. At the moment it only supports PMIDs, but in the future will also support citation via DOI.
+Description: This plugin makes citing scientific studies in an aesthetically pleasing manner much more easy. It allows you to simply enter in Pubmed IDs and have a references list automatically built for you.
 */
 
 
@@ -28,19 +28,25 @@ function enqueue_pmid_scripts()
 // Grabs pubmed page from URL, pulls into string, parses out an array with: title, journal, issue, authors, institution.
 function scrape_pmid_abstract($pubmedid)
 {
-    $pubmedpage = file_get_contents('http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid);
-    preg_match('/<div class="cit">(?P<journal>.*?)<\/a>(?P<issue>.*?\.).*?<\/div><h1>(?P<title>.+)<\/h1><div class="auths">(?P<authors>.+)<\/div><div class="aff"><h3.*Source<\/h3><p>(?P<institution>.*?)<\/p>.*?<div class="abstr">.*?\<p\>(?P<abstract>.*?)\<\/p\>(<p>\s*(©|Copyright|\s|\n|&#169;|&copy;).*?<\/p>)*<\/div>/', $pubmedpage, $matches);
-    $abstract = array(
-        'authors' => strip_tags($matches['authors']),
-        'title' => $matches['title'],
-        'institution' => $matches['institution'],
-        'journal' => strip_tags($matches['journal']),
-        'issue' => trim($matches['issue']),
-        'pmid' => $pubmedid,
-        'url' => 'http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid,
-        'abstract' => strip_tags($matches['abstract'])
-    );
-    return $abstract;
+    try {
+        $request = wp_remote_get('http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid);
+        $pubmedpage = $request['body'];
+        //TODO replace try/catch with is_wp_error()
+        preg_match('/<div class="cit">(?P<journal>.*?)<\/a>(?P<issue>.*?\.).*?<\/div><h1>(?P<title>.+)<\/h1><div class="auths">(?P<authors>.+)<\/div><div class="aff"><h3.*Source<\/h3><p>(?P<institution>.*?)<\/p>.*?<div class="abstr">.*?\<p\>(?P<abstract>.*?)\<\/p\>(<p>\s*(©|Copyright|\s|\n|&#169;|&copy;).*?<\/p>)*<\/div>/', $pubmedpage, $matches);
+        $abstract = array(
+            'authors' => strip_tags($matches['authors']),
+            'title' => $matches['title'],
+            'institution' => $matches['institution'],
+            'journal' => strip_tags($matches['journal']),
+            'issue' => trim($matches['issue']),
+            'pmid' => $pubmedid,
+            'url' => 'http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid,
+            'abstract' => strip_tags($matches['abstract'])
+        );
+        return $abstract;
+    } catch (Exception $e) {
+        return false;
+    }
 }
 
 // Takes a comma separated list, like the one constructed from build_simple_pmid_string, and creates a multi-dimensional array of all of the information produced by the scrape_pmid_abstract.
@@ -50,6 +56,7 @@ function process_pmid_input($fieldinput)
     foreach ($pmidarray as &$pmid) {
         $pmid = scrape_pmid_abstract($pmid);
     }
+    $pmidarray = array_filter($pmidarray); // remove entries wp_remote_get failed on
     return $pmidarray;
 }
 
