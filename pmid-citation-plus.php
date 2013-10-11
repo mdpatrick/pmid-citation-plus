@@ -8,6 +8,13 @@ Description: This plugin makes citing scientific studies in an aesthetically ple
 */
 
 
+add_action('wp_enqueue_scripts', 'enqueue_pmid_scripts');
+add_action('admin_init', 'pmidplus_add_meta');
+add_filter('the_content', 'addsometext', 9);
+add_shortcode( 'pmidplus', 'shortcode_cite' );
+// Execute save function on save.
+add_action('save_post', 'pmidplus_save_postdata');
+
  // Add script necessary to have abstract in tooltip.
 function enqueue_pmid_scripts() {
     wp_register_script( 'jquery-tooltip', plugins_url('/js/jquery-tooltip/jquery.tooltip.js', __FILE__));
@@ -16,10 +23,7 @@ function enqueue_pmid_scripts() {
     wp_enqueue_style( 'jquery-tooltip' );
 }    
  
-add_action('wp_enqueue_scripts', 'enqueue_pmid_scripts');
-
 // Grabs pubmed page from URL, pulls into string, parses out an array with: title, journal, issue, authors, institution.
-
 function scrape_pmid_abstract($pubmedid) {
 	$pubmedpage = file_get_contents('http://www.ncbi.nlm.nih.gov/pubmed/' . $pubmedid);
  	preg_match('/<div class="cit">(?P<journal>.*?)<\/a>(?P<issue>.*?\.).*?<\/div><h1>(?P<title>.+)<\/h1><div class="auths">(?P<authors>.+)<\/div><div class="aff"><h3.*Source<\/h3><p>(?P<institution>.*?)<\/p>.*?<div class="abstr">(\s|\n)*(?P<abstract>.*?)(<p>\s*(©|Copyright|\s|\n|&#169;|&copy;).*?<\/p>)*<\/div>/', $pubmedpage, $matches);
@@ -35,7 +39,6 @@ function scrape_pmid_abstract($pubmedid) {
 			);
 	return $abstract;
 }
-// var_dump(print_r(scrape_pmid_abstract(23036621))); die();
 
 // Takes a comma separated list, like the one constructed from build_simple_pmid_string, and creates a multi-dimensional array of all of the information produced by the scrape_pmid_abstract.
 function process_pmid_input($fieldinput) {
@@ -71,7 +74,9 @@ function build_references_html($processedarray) {
 	foreach($processedarray as $singlecitation) {
 		echo "<li id=\"cit".$singlecitation['pmid']."\">";
 		echo "{$singlecitation['authors']} {$singlecitation['title']} {$singlecitation['journal']} {$singlecitation['issue']} ".'PMID: '.'<a href="'.$singlecitation['url'].'">'.$singlecitation['pmid'].'</a>.';
-		if (strlen($singlecitation['abstract']) > 0) {
+
+// TODO actually implement abstract text on hover instead of just generating javascript errors.
+/*		if (strlen($singlecitation['abstract']) > 0) {
 		echo '
 <span style="display:none;" class="abstr">
 '.trim($singlecitation['abstract']).'
@@ -86,18 +91,18 @@ jQuery("#cit'.$singlecitation['pmid'].'").tooltip({
 });
 });
 </script>';
-		}
+		} */
 		echo "</li>";
 	}
 	?></ul></div>
 	<?php
         return ob_get_clean();
 }
+
 // Called to fill the new meta box about to be created.
 function pmidplus_input_fields() {
 	global $post;
         wp_nonce_field( plugin_basename(__FILE__), 'pmidplus_nonce' );
-	//var_dump(get_post_meta($post->ID, '_pcp_article_sources', true));echo "<br /><br />";
 	// The actual fields for data entry
 	echo '<label for="pmidinput">Comma separated list of PMIDs</label>';
 	echo '<textarea id="pmidinput" name="pmidinput" value="' . build_simple_pmid_string(get_post_meta($post->ID, '_pcp_article_sources', true)) . '" rows="6" cols="35">' . build_simple_pmid_string(get_post_meta($post->ID, '_pcp_article_sources', true)) . '</textarea>';
@@ -108,11 +113,8 @@ function pmidplus_add_meta() {
 	add_meta_box("pmidplusmeta", "PMID Citation Plus", "pmidplus_input_fields", "post", "side", "high", $post);
 	add_meta_box("pmidplusmeta", "PMID Citation Plus", "pmidplus_input_fields", "page", "side", "high", $post);
 }
-add_action('admin_init', 'pmidplus_add_meta');
-
 
 function pmidplus_save_postdata( $post_id ) {
-
   // Make sure save is intentional, not just autosave. 
   if ( defined('DOING_AUTOSAVE') && DOING_AUTOSAVE ) 
       return $post_id;
@@ -146,9 +148,6 @@ function pmidplus_save_postdata( $post_id ) {
 	}
 } 
 
-// Execute save function on save.
-add_action('save_post', 'pmidplus_save_postdata');
-
 // Adds references to the bottom of posts
 function addsometext($contentofpost) {
 	global $post;
@@ -156,9 +155,9 @@ function addsometext($contentofpost) {
 		$contentofpost .= build_references_html(get_post_meta($post->ID, '_pcp_article_sources', true));
 	return $contentofpost;
 }
-add_filter('the_content', 'addsometext', 9);
 
-// Future shortcode implementation in the works
+// TODO Future shortcode implementation in the works
+// [pmidplus pmid="815460, 817050"]
 /*
 function shortcode_citation( $atts ) {
 	if(array_key_exists('pmid', $atts)) {
@@ -171,7 +170,5 @@ function shortcode_citation( $atts ) {
 		return "ELSE FALSE ". print_r($atts);
 	}
 }
-add_shortcode( 'pmidplus', 'shortcode_cite' );
 */
-// [pmiudplus pmid="815460, 817050"]
 ?>

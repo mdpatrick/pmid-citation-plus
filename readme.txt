@@ -10,7 +10,9 @@ This plugin allows you to simply enter in PubMed IDs (PMIDs) and have a referenc
 
 == Description ==
 
-**[For $30 I will add your feature and provide support.](http://www.mdpatrick.com/donate/)**
+Feature request?
+
+**[Consider dropping me a few bucks (donate page)](http://www.mdpatrick.com/donate/)**
 
 .. or ..
 
@@ -33,16 +35,23 @@ It allows you to simply enter in PubMed IDs on the composition page and have a r
 
 == Upgrade Notice ==
 
+= 1.0.2 =
+This version fixes a javascript error.
+
+= 1.0.1 =
+Swapped input for larger textarea on pubmed id entry input.
+
+= 1.0.0 =
+Release
+
+== Changelog ==
+
 = 1.0.1 =
 * Swapped input for larger textarea on pubmed id entry input.
 
 = 1.0.0 =
-* Currently we're at first release. Future upgrade information will be listed here.
-
-== Changelog ==
-
-= 1.0.0 =
 * Release
+
 
 == Installation ==
 
