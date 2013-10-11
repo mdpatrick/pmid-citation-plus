@@ -3,7 +3,7 @@ This plugin allows authors to quickly construct a rich bibliography not unlike t
 
 This plugin should appeal primarily to health and science bloggers.
 
-[View "PMID Citation Plus" in the WordPress.org Plugin Directory](http://wordpress.org/plugins/facebook-simple-like/)
+[View "PMID Citation Plus" in the WordPress.org Plugin Directory](http://wordpress.org/plugins/pmid-citation-plus/)
 
 #### Todo
 * Ditch output buffering. (ob_start, ob_end_clean, ob_get_contents, ob_end_flush, etc.)
