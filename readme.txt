@@ -35,7 +35,7 @@ It allows you to simply enter in PubMed IDs on the composition page and have a r
 
 == Upgrade Notice ==
 
-= 1.0.5 =
+= 1.0.6 =
 This update fixes an important javascript error that broke tooltips which allow the user to see part of the associated abstract upon hover. It also includes a fix which should prevent some PMIDs from failing to create a correct entry in the bibliography.
 
 = 1.0.1 =
@@ -46,7 +46,7 @@ Release
 
 == Changelog ==
 
-= 1.0.5 =
+= 1.0.6 =
 * Tooltips fixed, now shows part of abstract when hovering an entry in the bibliography.
 * Abstracts with no institution listed are now able to be parsed.
 * Improved error handling for some particular edge cases.
