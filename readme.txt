@@ -55,6 +55,7 @@ Release
 * Added ability to toggle abtract tooltips on/off.
 * Added ability to set length of abstract in tooltip.
 * Added ability to append "Open with Read" link to bibliographic entries.
+* Add target="_blank" (open in new window) to links in bibliography. This can be toggled in new settings page.
 * Added a nag notice to remind you guys to rate the plugin.
 
 
