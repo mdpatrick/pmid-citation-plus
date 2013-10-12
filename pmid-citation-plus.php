@@ -102,7 +102,7 @@ function build_references_html($processedarray)
         foreach ($processedarray as $singlecitation) {
             echo "<li id=\"cit" . $singlecitation['pmid'] . "\">";
             $targetblank = $pmidplus_options["targetblank"] ? ' target="_blank"' : '';
-            $openwithread = $pmidplus_options["open_with_read"] ? " [<a href=\"{$singlecitation['pmid']}\"{$targetblank}>Open with Read</a>]" : '';
+            $openwithread = $pmidplus_options["open_with_read"] ? " [<a href=\"http://qxmd.com/r/{$singlecitation['pmid']}\"{$targetblank}>Open with Read</a>]" : '';
             echo "{$singlecitation['authors']} {$singlecitation['title']} {$singlecitation['journal']} {$singlecitation['issue']} " . 'PMID: ' . '<a href="' . $singlecitation['url'] . "\"{$targetblank}>" . $singlecitation['pmid'] . '</a>.'.$openwithread;
             if ((strlen($singlecitation['abstract']) > 0) and $pmidplus_options['abstract_tooltip']) {
                 echo '
