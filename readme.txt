@@ -35,6 +35,9 @@ It allows you to simply enter in PubMed IDs on the composition page and have a r
 
 == Upgrade Notice ==
 
+= 1.0.7 =
+Download this update if you'd like to be able to toggle abstract tooltips on/off, change its length, and/or add "Open with Read (By QxMD)" links to citations.
+
 = 1.0.6 =
 This update fixes an important javascript error that broke tooltips which allow the user to see part of the associated abstract upon hover. It also includes a fix which should prevent some PMIDs from failing to create a correct entry in the bibliography.
 
@@ -45,6 +48,16 @@ Swapped input for larger textarea on pubmed id entry input.
 Release
 
 == Changelog ==
+
+= 1.0.7 =
+* Added a new settings page.
+* Added contact form to get in touch with me (the author).
+* Added ability to toggle abtract tooltips on/off.
+* Added ability to set length of abstract in tooltip.
+* Added ability to append "Open with Read" link to bibliographic entries.
+* Add target="_blank" (open in new window) to links in bibliography. This can be toggled in new settings page.
+* Added a nag notice to remind you guys to rate the plugin.
+
 
 = 1.0.6 =
 * Tooltips fixed, now shows part of abstract when hovering an entry in the bibliography.
