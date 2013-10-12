@@ -211,6 +211,11 @@ if (is_admin()) {
     add_action('admin_init', 'register_pmidplus_settings', 9);
     // Show nag screen asking to rate plugin (first time only).
     add_action('admin_notices', 'pmidplus_rate_plugin_notice');
+    add_action('admin_enqueue_scripts', 'pmidplus_enqueue_admin_scripts');
+}
+
+function pmidplus_enqueue_admin_scripts()
+{
     wp_enqueue_style('pmidplus-style');
 }
 
@@ -218,7 +223,7 @@ function pmidplus_admin_menu()
 {
     // TODO make an actual icon instead of using my personal gravatar
     $icon = 'http://0.gravatar.com/avatar/89ba550ea497b0b1a329b4e9b10034b2?s=16&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D16&amp';
-    add_object_page('PMID Citation Plus', 'PMID Citation Plus', 'edit_theme_options', 'pmid-citation-plus/includes/pmidplus-settings.php', '', $icon, 79);
+    add_object_page('PMID Citation Plus', 'Bibliography', 'edit_theme_options', 'pmid-citation-plus/includes/pmidplus-settings.php', '', $icon, 79);
 }
 
 function register_pmidplus_settings()

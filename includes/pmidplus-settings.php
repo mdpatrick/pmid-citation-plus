@@ -33,7 +33,7 @@
             </tr>
             <tr>
                 <td>
-                    Append "Open with Read" link to bibliographical entries <small><em>(<a href="https://www.readbyqxmd.com/about">what's this?</a>)</em></small>
+                    Append "Open with Read" link to bibliographical entries<br /><small><em>(<a href="https://www.readbyqxmd.com/about" target="_blank">what's this?</a>)</em></small>
                 </td>
                 <td>
                     <label for="open_with_read_on">on</label>
