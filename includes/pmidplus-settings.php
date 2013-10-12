@@ -11,12 +11,12 @@
                 <td>
                     <label for="abstract_tooltip_on">on</label>
                     <input id="abstract_tooltip_on" name="pmidplus_options[abstract_tooltip]" type="radio"
-                           value="true" checked="<?php echo $pmidplus_options['abstract_tooltip'] ? "true" : "false"; ?>" />
+                           value="true" <?php echo $pmidplus_options['abstract_tooltip'] ? 'checked="true"' : ''; ?> />
                 </td>
                 <td>
                     <label for="abstract_tooltip_off">off</label>
                     <input id="abstract_tooltip_off" name="pmidplus_options[abstract_tooltip]" type="radio"
-                           value="false" checked="<?php echo !$pmidplus_options['abstract_tooltip'] ? "true" : "false"; ?>"/>
+                           value="false" <?php echo !$pmidplus_options['abstract_tooltip'] ? 'checked="true"' : ''; ?> />
                 </td>
             </tr>
             <tr>
@@ -38,12 +38,12 @@
                 <td>
                     <label for="open_with_read_on">on</label>
                     <input id="open_with_read_on" name="pmidplus_options[open_with_read]" type="radio"
-                           value="true" checked="<?php echo $pmidplus_options['open_with_read'] ? "true" : "false"; ?>" />
+                           value="true" <?php echo $pmidplus_options['open_with_read'] ? 'checked="true"' : ''; ?> />
                 </td>
                 <td>
                     <label for="open_with_read_off">off</label>
                     <input id="open_with_read_off" name="pmidplus_options[open_with_read]" type="radio"
-                           value="false" checked="<?php echo !$pmidplus_options['open_with_read'] ? "true" : "false"; ?>"/>
+                           value="false" <?php echo !$pmidplus_options['open_with_read'] ? 'checked="true"' : ''; ?>/>
                 </td>
             </tr>
             <tr>
@@ -53,12 +53,12 @@
                 <td>
                     <label for="targetblank_on">on</label>
                     <input id="targetblank_on" name="pmidplus_options[targetblank]" type="radio"
-                           value="true" checked="<?php echo $pmidplus_options['targetblank'] ? "true" : "false"; ?>" />
+                           value="true" <?php echo $pmidplus_options['targetblank'] ? 'checked="true"' : ''; ?>" />
                 </td>
                 <td>
                     <label for="targetblank_off">off</label>
                     <input id="targetblank_off" name="pmidplus_options[targetblank]" type="radio"
-                           value="false" checked="<?php echo !$pmidplus_options['targetblank'] ? "true" : "false" ?>"/>
+                           value="false" <?php echo !$pmidplus_options['targetblank'] ? 'checked="true"' : ''; ?>"/>
                 </td>
             </tr>
         </table>
