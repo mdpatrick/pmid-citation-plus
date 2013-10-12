@@ -102,7 +102,7 @@ function build_references_html($processedarray)
         foreach ($processedarray as $singlecitation) {
             echo "<li id=\"cit" . $singlecitation['pmid'] . "\">";
             $targetblank = $pmidplus_options["targetblank"] ? ' target="_blank"' : '';
-            $openwithread = $pmidplus_options["open_with_read"] ? " [<a href=\"{$singlecitation['pmid']}\"{$targetblank}> Open with Read</a>]" : '';
+            $openwithread = $pmidplus_options["open_with_read"] ? " [<a href=\"{$singlecitation['pmid']}\"{$targetblank}>Open with Read</a>]" : '';
             echo "{$singlecitation['authors']} {$singlecitation['title']} {$singlecitation['journal']} {$singlecitation['issue']} " . 'PMID: ' . '<a href="' . $singlecitation['url'] . "\"{$targetblank}>" . $singlecitation['pmid'] . '</a>.'.$openwithread;
             if ((strlen($singlecitation['abstract']) > 0) and $pmidplus_options['abstract_tooltip']) {
                 echo '
@@ -263,12 +263,12 @@ function pmidplus_options_sanitization($input)
     $safe = array();
     $input['abstract_tooltip_length'] = trim($input['abstract_tooltip_length']);
 
-    if (preg_match('/^[\d]+$/', $input['abstract_tooltip_length'], $matches) and (intval($matches[1]) > 1)) {
-        $safe['abstract_tooltip_length'] = $matches[1];
+    if (preg_match('/[\d]+/', $input['abstract_tooltip_length'], $matches) and (intval($matches[0]) > 1)) {
+        $safe['abstract_tooltip_length'] = intval($matches[0]);
     }
 
-    foreach(array('abstract_tooltip', 'open_with_read', 'targetblank') as $key => $value) {
-        if ($input[$value]) {
+    foreach(array('abstract_tooltip', 'open_with_read', 'targetblank') as $value) {
+        if ($input[$value] == "true") {
             $safe[$value] = true;
         } else {
             $safe[$value] = false;

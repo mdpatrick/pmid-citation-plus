@@ -3,6 +3,9 @@
 .pmidplus-options-table td {
     padding: 20px;
 }
+.pmidplus-options-table input[type="radio"] {
+    margin: 0 10px 0 10px;
+}
 
 .instructions {
     width: 450px;
