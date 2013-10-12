@@ -268,10 +268,10 @@ function pmidplus_options_sanitization($input)
     }
 
     foreach(array('abstract_tooltip', 'open_with_read', 'targetblank') as $key => $value) {
-        if ($value) {
-            $safe[$key] = true;
+        if ($input[$value]) {
+            $safe[$value] = true;
         } else {
-            $safe[$key] = false;
+            $safe[$value] = false;
         }
     }
 
