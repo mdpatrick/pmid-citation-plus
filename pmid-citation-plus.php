@@ -2,19 +2,30 @@
 /*
 Plugin Name: PMID Citation Plus
 Plugin URI: http://www.mdpatrick.com/2011/pmidcitationplus/
-Version: 1.0.6
+Version: 1.0.7
 Author: Dan Patrick
 Author URI: http://www.mdpatrick.com/
 Description: This plugin makes citing scientific studies in an aesthetically pleasing manner much more easy. It allows you to simply enter in Pubmed IDs and have a references list automatically built for you.
 */
 
-
 add_action('wp_enqueue_scripts', 'enqueue_pmid_scripts');
 add_action('admin_init', 'pmidplus_add_meta');
-add_filter('the_content', 'addsometext', 9);
+add_action('save_post', 'pmidplus_save_postdata'); // Execute save function on save.
+add_filter('the_content', 'pmidplus_append_bibliography', 9);
 add_shortcode('pmidplus', 'shortcode_cite');
-// Execute save function on save.
-add_action('save_post', 'pmidplus_save_postdata');
+
+// TODO don't use globals. May cause conflicts in WordPress core or other plugins.
+global $pmidplus_options;
+$pmidplus_options = get_option('pmidplus_options', false);
+// Set some defaults options for settings page.
+if (!$pmidplus_options or (count($pmidplus_options) < 4)) {
+    $pmidplus_options = array(
+        'abstract_tooltip' => true,
+        'abstract_tooltip_length' => 450,
+        'open_with_read' => false,
+        'targetblank' => true
+    );
+}
 
 // Add script necessary to have abstract in tooltip.
 function enqueue_pmid_scripts()
@@ -24,6 +35,8 @@ function enqueue_pmid_scripts()
     wp_enqueue_script('jquery-tooltip');
     wp_register_style('jquery-tooltip', plugins_url('/js/jquery-tooltip/jquery.tooltip.css', __FILE__));
     wp_enqueue_style('jquery-tooltip');
+    wp_register_style('pmidplus-style', plugins_url('/css/pmidplus.css', __FILE__));
+    wp_enqueue_style('pmidplus-style');
 }
 
 // Grabs pubmed page from URL, pulls into string, parses out an array with: title, journal, issue, authors, institution.
@@ -89,22 +102,24 @@ function build_references_html($processedarray)
         <?php
         foreach ($processedarray as $singlecitation) {
             echo "<li id=\"cit" . $singlecitation['pmid'] . "\">";
-            echo "{$singlecitation['authors']} {$singlecitation['title']} {$singlecitation['journal']} {$singlecitation['issue']} " . 'PMID: ' . '<a href="' . $singlecitation['url'] . '">' . $singlecitation['pmid'] . '</a>.';
-            if (strlen($singlecitation['abstract']) > 0) {
+            $targetblank = $pmidplus_options["targetblank"] ? ' target="_blank"' : '';
+            $openwithread = $pmidplus_options["open_with_read"] ? " [<a href=\"{$singlecitation['pmid']}\"{$targetblank}> Open with Read</a>]" : '';
+            echo "{$singlecitation['authors']} {$singlecitation['title']} {$singlecitation['journal']} {$singlecitation['issue']} " . 'PMID: ' . '<a href="' . $singlecitation['url'] . "\"{$targetblank}>" . $singlecitation['pmid'] . '</a>.'.$openwithread;
+            if ((strlen($singlecitation['abstract']) > 0) and $pmidplus_options['abstract_tooltip']) {
                 echo '
-<span style="display:none;" class="abstr">
-' . substr(trim($singlecitation['abstract']), 0, 445) . ' [...]
-</span>
-<script type="text/javascript">
-jQuery(document).ready(function() {
-jQuery("#cit' . $singlecitation['pmid'] . '").tooltip({
-    bodyHandler: function() { 
-        return jQuery("#cit' . $singlecitation['pmid'] . ' .abstr").text();
-    }, 
-    showURL: false 
-});
-});
-</script>';
+                    <span style="display:none;" class="abstr">
+                    ' . substr(trim($singlecitation['abstract']), 0, $pmidplus_options['abstract_tooltip_length']) . ' [...]
+                    </span>
+                    <script type="text/javascript">
+                    jQuery(document).ready(function() {
+                    jQuery("#cit' . $singlecitation['pmid'] . '").tooltip({
+                        bodyHandler: function() {
+                            return jQuery("#cit' . $singlecitation['pmid'] . ' .abstr").text();
+                        },
+                        showURL: false
+                    });
+                    });
+                    </script>';
             }
             echo "</li>";
         }
@@ -163,7 +178,7 @@ function pmidplus_save_postdata($post_id)
 }
 
 // Adds references to the bottom of posts
-function addsometext($contentofpost)
+function pmidplus_append_bibliography($contentofpost)
 {
     global $post;
     if (get_post_meta($post->ID, '_pcp_article_sources', true))
@@ -186,4 +201,75 @@ function shortcode_citation( $atts ) {
 	}
 }
 */
+
+
+/******************** below this point, admin area code **********************/
+
+if (is_admin()) {
+    // Show the PMID Citation Plus option under the Settings section.
+    add_action('admin_menu', 'pmidplus_admin_menu', 9);
+    add_action('admin_init', 'register_pmidplus_settings', 9);
+    // Show nag screen asking to rate plugin (first time only).
+    add_action('admin_notices', 'pmidplus_rate_plugin_notice');
+}
+
+function pmidplus_admin_menu()
+{
+    // TODO make an actual icon instead of using my personal gravatar
+    $icon = 'http://0.gravatar.com/avatar/89ba550ea497b0b1a329b4e9b10034b2?s=16&amp;d=http%3A%2F%2F0.gravatar.com%2Favatar%2Fad516503a11cd5ca435acc9bb6523536%3Fs%3D16&amp';
+    add_object_page('PMID Citation Plus', 'PMID Citation Plus', 'edit_theme_options', 'pmid-citation-plus/includes/pmidplus-settings.php', '', $icon, 79);
+}
+
+function register_pmidplus_settings()
+{
+    register_setting('pmidplus_options', 'pmidplus_options', 'pmidplus_options_sanitization');
+}
+
+function pmidplus_rate_plugin_notice()
+{
+    if ($_GET['dismiss_rate_notice'] == '1') {
+        update_option('pmidplus_rate_notice_dismissed', '1');
+    } elseif ($_GET['remind_rate_later'] == '1') {
+        update_option('pmidplus_reminder_date', strtotime('+10 days'));
+    } else {
+        // If no dismiss & no reminder, this is fresh install. Lets give it a few days before nagging.
+        update_option('pmidplus_reminder_date', strtotime('+3 days'));
+    }
+
+    $rateNoticeDismissed = get_option('pmidplus_rate_notice_dismissed');
+    $reminderDate = get_option('pmidplus_reminder_date');
+    if (!$rateNoticeDismissed && (!$reminderDate || ($reminderDate < strtotime('now')))) {
+        ?>
+    <div id="pmidplus-rating-reminder" class="updated"><p>
+        Hey, you've been using <a href="admin.php?page=pmid-citation-plus/includes/pmidplus-settings.php">PMID Citation Plus</a>
+        for a while. Will you please take a moment to rate it? <br/><br/><a
+        href="http://wordpress.org/extend/plugins/pmid-citation-plus" target="_blank" onclick="jQuery.ajax({'type': 'get', 'url':'options-general.php?page=pmidplus_options&dismiss_rate_notice=1'});">sure, i'll
+        rate it right now</a>
+        <a href="options-general.php?page=pmidplus_options&remind_rate_later=1" class="remind-later">remind me later</a>
+    </p></div>
+    <?php
+    }
+}
+
+// ALL of the options array passes through this. This must be amended for new options.  
+function pmidplus_options_sanitization($input)
+{
+    $safe = array();
+    $input['abstract_tooltip_length'] = trim($input['abstract_tooltip_length']);
+
+    if (preg_match('/^[\d]+$/', $input['abstract_tooltip_length'], $matches) and (intval($matches[1]) > 1)) {
+        $safe['abstract_tooltip_length'] = $matches[1];
+    }
+
+    foreach(array('abstract_tooltip', 'open_with_read', 'targetblank') as $key => $value) {
+        if ($value) {
+            $safe[$key] = true;
+        } else {
+            $safe[$key] = false;
+        }
+    }
+
+    return $safe;
+}
+
 ?>
