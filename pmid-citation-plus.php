@@ -14,8 +14,6 @@ add_action('save_post', 'pmidplus_save_postdata'); // Execute save function on s
 add_filter('the_content', 'pmidplus_append_bibliography', 9);
 add_shortcode('pmidplus', 'shortcode_cite');
 
-// TODO don't use globals. May cause conflicts in WordPress core or other plugins.
-global $pmidplus_options;
 $pmidplus_options = get_option('pmidplus_options', false);
 // Set some defaults options for settings page.
 if (!$pmidplus_options or (count($pmidplus_options) < 4)) {
@@ -94,6 +92,7 @@ function build_simple_pmid_string($processedarray)
 // Takes an array, like that built from process_pmid_input, and returns it as a string.
 function build_references_html($processedarray)
 {
+    global $pmidplus_options;
     ob_start();
     ?>
 <div class="pmidcitationplus">
