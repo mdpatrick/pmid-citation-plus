@@ -211,6 +211,7 @@ if (is_admin()) {
     add_action('admin_init', 'register_pmidplus_settings', 9);
     // Show nag screen asking to rate plugin (first time only).
     add_action('admin_notices', 'pmidplus_rate_plugin_notice');
+    wp_enqueue_style('pmidplus-style');
 }
 
 function pmidplus_admin_menu()
