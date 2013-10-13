@@ -2,7 +2,7 @@
 /*
 Plugin Name: PMID Citation Plus
 Plugin URI: http://www.mdpatrick.com/2011/pmidcitationplus/
-Version: 1.0.7
+Version: 1.0.8
 Author: Dan Patrick
 Author URI: http://www.mdpatrick.com/
 Description: This plugin makes citing scientific studies in an aesthetically pleasing manner much more easy. It allows you to simply enter in Pubmed IDs and have a references list automatically built for you.

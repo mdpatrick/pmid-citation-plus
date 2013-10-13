@@ -35,7 +35,7 @@ It allows you to simply enter in PubMed IDs on the composition page and have a r
 
 == Upgrade Notice ==
 
-= 1.0.7 =
+= 1.0.8 =
 Download this update if you'd like to be able to toggle abstract tooltips on/off, change its length, and/or add "Open with Read (By QxMD)" links to citations.
 
 = 1.0.6 =
@@ -49,7 +49,7 @@ Release
 
 == Changelog ==
 
-= 1.0.7 =
+= 1.0.8 =
 * Added a new settings page.
 * Added contact form to get in touch with me (the author).
 * Added ability to toggle abtract tooltips on/off.
