@@ -147,6 +147,8 @@ function pmidplus_add_meta()
 
 function pmidplus_save_postdata($post_id)
 {
+    global $post;
+    
     // Make sure save is intentional, not just autosave.
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
         return $post_id;
@@ -162,6 +164,11 @@ function pmidplus_save_postdata($post_id)
     } else {
         if (!current_user_can('edit_post', $post_id))
             return $post_id;
+    }
+
+    //fix
+    if($post_id!=$post->ID) { 
+        $post_id = $post->ID;
     }
 
 // So far so good. Now we need to save the data. Only do it if the field doesn't match.
