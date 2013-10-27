@@ -93,3 +93,7 @@
     display: block;
     padding-top: 10px;
 }
+
+.pmidcitationplus.shortcode ul {
+   list-style: none outside none;
+ } 

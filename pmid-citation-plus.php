@@ -12,7 +12,7 @@ add_action('wp_enqueue_scripts', 'enqueue_pmid_scripts');
 add_action('admin_init', 'pmidplus_add_meta');
 add_action('save_post', 'pmidplus_save_postdata'); // Execute save function on save.
 add_filter('the_content', 'pmidplus_append_bibliography', 9);
-add_shortcode('pmidplus', 'shortcode_cite');
+add_shortcode('PMID', 'shortcode_cite');
 
 $pmidplus_options = get_option('pmidplus_options', false);
 // Set some defaults options for settings page.
@@ -23,6 +23,41 @@ if (!$pmidplus_options or (count($pmidplus_options) < 4)) {
         'open_with_read' => false,
         'targetblank' => true
     );
+}
+
+function shortcode_cite($attrs, $contents = null) {
+    global $post;
+    if(!isset($contents) || $contents == null || $contents == "" || intval($contents) <= 0 )
+    {
+        return "<b>PMID:Wrong Shortcode Contents</b>";
+    }
+
+    $post->during_shortcode = 1;
+    $processedarray = get_post_meta($post->ID, '_pcp_article_sources_shortcode', true);
+    $pmidarray = array();
+    foreach ($processedarray as $key => $arr) {
+        if(clean_pmid($arr['pmid']) == $contents) {
+            $pmidarray[] = $arr;
+            break;
+        }
+    }
+    if(sizeof($pmidarray) > 0) {
+        $result = build_references_html($pmidarray);
+    } else {
+        $result = "<b>Wrong PMID provided in shortcode: " . $contents."</b>";
+    }
+    $post->during_shortcode = 0;
+    return $result;
+
+}
+
+function clean_pmid($pmid) {
+    if($pmid[0] == "@") {
+        $str = substr($pmid, 1);
+    } else {
+        $str = $pmid;
+    }
+    return $str;
 }
 
 // Add script necessary to have abstract in tooltip.
@@ -69,7 +104,12 @@ function process_pmid_input($fieldinput)
 {
     $pmidarray = preg_split("/[\s,]+/", $fieldinput, null, PREG_SPLIT_NO_EMPTY);
     foreach ($pmidarray as &$pmid) {
-        $pmid = scrape_pmid_abstract($pmid);
+        $old_pmid = $pmid;
+        $pmid = scrape_pmid_abstract(clean_pmid($pmid));
+
+        if($old_pmid[0] == "@") {
+            $pmid['pmid'] = "@".$pmid['pmid'];
+        }
     }
     $pmidarray = array_filter($pmidarray); // remove entries wp_remote_get failed on
     return $pmidarray;
@@ -82,7 +122,8 @@ function build_simple_pmid_string($processedarray)
         foreach ($processedarray as &$citation) {
             $citation = $citation['pmid'];
         }
-        $processedarray = implode(", ", $processedarray);
+        $processedarray = implode(",", $processedarray);
+        // die($processedarray);
         return $processedarray;
     } else {
         return false;
@@ -93,17 +134,26 @@ function build_simple_pmid_string($processedarray)
 function build_references_html($processedarray)
 {
     global $pmidplus_options;
+    global $post;
     ob_start();
+
+    $cssclass = ""; 
+    if(!isset($post->during_shortcode) || $post->during_shortcode != 1)
+         {
+             echo "<h1>References</h1>";
+         } else {
+             $cssclass = " shortcode";
+         } 
+
     ?>
-<div class="pmidcitationplus">
-    <h1>References</h1>
+    <div class="pmidcitationplus<?=$cssclass;?>">
     <ul>
         <?php
         foreach ($processedarray as $singlecitation) {
             echo "<li id=\"cit" . $singlecitation['pmid'] . "\">";
             $targetblank = $pmidplus_options["targetblank"] ? ' target="_blank"' : '';
             $openwithread = $pmidplus_options["open_with_read"] ? " [<a href=\"http://qxmd.com/r/{$singlecitation['pmid']}\"{$targetblank}>Open with Read</a>]" : '';
-            echo "{$singlecitation['authors']} {$singlecitation['title']} {$singlecitation['journal']} {$singlecitation['issue']} " . 'PMID: ' . '<a href="' . $singlecitation['url'] . "\"{$targetblank}>" . $singlecitation['pmid'] . '</a>.'.$openwithread;
+            echo "{$singlecitation['authors']} {$singlecitation['title']} {$singlecitation['journal']} {$singlecitation['issue']} " . 'PMID: ' . '<a href="' . clean_pmid($singlecitation['url']) . "\"{$targetblank}>" . clean_pmid($singlecitation['pmid']) . '</a>.'.$openwithread;
             if ((strlen($singlecitation['abstract']) > 0) and $pmidplus_options['abstract_tooltip']) {
                 echo '
                     <span style="display:none;" class="abstr">
@@ -147,6 +197,8 @@ function pmidplus_add_meta()
 
 function pmidplus_save_postdata($post_id)
 {
+    global $post;
+    
     // Make sure save is intentional, not just autosave.
     if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE)
         return $post_id;
@@ -162,6 +214,30 @@ function pmidplus_save_postdata($post_id)
     } else {
         if (!current_user_can('edit_post', $post_id))
             return $post_id;
+    }
+
+    //fix
+    if($post_id!=$post->ID) { 
+        $post_id = $post->ID;
+    }
+
+    //process present shortcodes and add pmids from them
+    if(has_shortcode($_POST['content'], 'PMID')) {
+        preg_match_all("/\[PMID\](.*)\[\/PMID\]/", $_POST['content'], $matches);
+        $pmids=array();
+        foreach ($matches[1] as $key => $value) {
+            $pmids[] = "@".$value;
+        }
+
+        if (build_simple_pmid_string(get_post_meta($post_id, '_pcp_article_sources_shortcode',
+                    true)) != join(",", $pmids) && $_POST['wp-preview'] != 'dopreview') {
+
+            $neverusedbefore = process_pmid_input(join(",", $pmids));
+            if (!update_post_meta($post_id, '_pcp_article_sources_shortcode', $neverusedbefore)) {
+                die('Unable to post PMID Citations with Read update to meta.');
+            }
+        }
+        
     }
 
 // So far so good. Now we need to save the data. Only do it if the field doesn't match.
@@ -184,22 +260,6 @@ function pmidplus_append_bibliography($contentofpost)
         $contentofpost .= build_references_html(get_post_meta($post->ID, '_pcp_article_sources', true));
     return $contentofpost;
 }
-
-// TODO Future shortcode implementation in the works
-// [pmidplus pmid="815460, 817050"]
-/*
-function shortcode_citation( $atts ) {
-	if(array_key_exists('pmid', $atts)) {
-		$pmids = explode(",", $atts['pmid']);
-		}
-			
-		$intext	= "[HI]"; 
-	}
-	else {
-		return "ELSE FALSE ". print_r($atts);
-	}
-}
-*/
 
 
 /******************** below this point, admin area code **********************/
